@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#07111f">
+<title>JARVIS 2.0</title>
+<style>
+:root{color-scheme:dark;--cyan:#55e7ff;--panel:#0d1b2b;--muted:#9db4c8}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;background:radial-gradient(circle at 50% 0,#12304b,#050a12 60%);color:#eaf8ff;font-family:system-ui,Arial,sans-serif;display:flex;justify-content:center}
+main{width:min(100%,620px);padding:22px 16px 34px}
+header{text-align:center;margin:10px 0 20px}
+h1{letter-spacing:7px;color:var(--cyan);font-size:30px;margin:8px 0}
+.sub{color:var(--muted);font-size:12px;letter-spacing:3px}
+.core{width:150px;height:150px;border:2px solid var(--cyan);border-radius:50%;margin:22px auto;display:grid;place-items:center;box-shadow:0 0 18px #39dfff66,inset 0 0 22px #39dfff33;position:relative}
+.core:before,.core:after{content:"";position:absolute;border:1px solid #55e7ff77;border-radius:50%;inset:10px}
+.core:after{inset:23px}
+.core span{font-size:42px;color:var(--cyan);text-shadow:0 0 18px var(--cyan)}
+.status{text-align:center;color:var(--cyan);font-size:13px;min-height:22px;margin-bottom:15px}
+.panel{background:#0b1928dd;border:1px solid #23445c;border-radius:18px;padding:14px;margin:12px 0;box-shadow:0 8px 30px #0005}
+#chat{height:260px;overflow-y:auto;display:flex;flex-direction:column;gap:10px}
+.msg{padding:10px 12px;border-radius:13px;max-width:90%;font-size:14px;line-height:1.45;white-space:pre-wrap}
+.bot{background:#102b40;border:1px solid #1c526a;align-self:flex-start}
+.user{background:#123b4c;border:1px solid #27758a;align-self:flex-end}
+.controls{display:flex;gap:9px;flex-wrap:wrap}
+button{border:1px solid #3b8299;background:#102d40;color:#eafaff;border-radius:12px;padding:12px 14px;font-weight:650;cursor:pointer}
+button.primary{background:#087d99;border-color:#55e7ff;flex:1}
+button:active{transform:scale(.98)}
+input{min-width:0;flex:1;background:#07121e;color:white;border:1px solid #31536b;border-radius:12px;padding:13px;font-size:15px}
+.hint{font-size:12px;color:var(--muted);line-height:1.55}
+h3{font-size:14px;color:var(--cyan);margin:0 0 9px}
+</style>
+</head>
+<body>
+<main>
+<header><div class="sub">PERSONAL VOICE ASSISTANT</div><h1>J.A.R.V.I.S.</h1><div class="sub">VERSION 2.0</div></header>
+<div class="core"><span>◉</span></div>
+<div class="status" id="status">SYSTEM ONLINE · READY</div>
+<section class="panel"><div id="chat" aria-live="polite">
+<div class="msg bot">Hello! Main JARVIS 2.0 hoon. Mic dabao ya message type karo. Try: “time kya hua hai”, “YouTube kholo”, “Google par physics search karo”.</div>
+</div></section>
+<section class="panel">
+<div class="controls">
+<button class="primary" id="mic">🎙️ Speak</button>
+<button id="stop">■ Stop</button>
+</div>
+<div class="controls" style="margin-top:10px">
+<input id="text" placeholder="JARVIS ko message bhejo..." autocomplete="off">
+<button id="send">Send</button>
+</div>
+</section>
+<section class="panel">
+<h3>TRY THESE COMMANDS</h3>
+<div class="hint">• “Time kya hua hai?”<br>• “Date batao”<br>• “YouTube kholo” / “Google kholo”<br>• “Google par [topic] search karo”<br>• “Wikipedia par [topic] search karo”<br>• “Mera naam kya hai?” (abhi naam set nahi hai)</div>
+</section>
+<div class="hint" style="text-align:center">Tip: Voice recognition ke liye internet aur Chrome microphone permission zaroori ho sakti hai. AI-style open-ended answers ke liye baad mein secure AI connection add karenge; API key is HTML file mein mat daalna.</div>
+</main>
+<script>
+const chat=document.getElementById('chat'),statusEl=document.getElementById('status');
+const input=document.getElementById('text');
+let recognition=null, speaking=false;
+function add(text,who='bot'){const d=document.createElement('div');d.className='msg '+who;d.textContent=text;chat.appendChild(d);chat.scrollTop=chat.scrollHeight;}
+function say(text){if(!('speechSynthesis'in window))return;window.speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(text);u.lang='hi-IN';u.rate=1;u.pitch=1;window.speechSynthesis.speak(u);}
+function reply(text,voice=true){add(text,'bot');statusEl.textContent='SYSTEM ONLINE · READY';if(voice)say(text);}
+function openUrl(url){window.open(url,'_blank','noopener');}
+function handle(raw){
+ const q=raw.trim(),s=q.toLowerCase();if(!q)return;
+ add(q,'user');input.value='';statusEl.textContent='PROCESSING COMMAND...';
+ if(/\b(stop|chup|quiet)\b/.test(s)){window.speechSynthesis.cancel();reply('Okay. Main chup ho gaya.');return;}
+ if(s.includes('time')||s.includes('samay')||s.includes('kitne baje')){reply('Abhi '+new Date().toLocaleTimeString('en-IN',{hour:'numeric',minute:'2-digit'})+' baj rahe hain.');return;}
+ if(s.includes('date')||s.includes('tarikh')||s.includes('aaj ka din')){reply('Aaj '+new Date().toLocaleDateString('hi-IN',{weekday:'long',day:'numeric',month:'long',year:'numeric'})+' hai.');return;}
+ if(s.includes('youtube kholo')||s==='youtube'||s.includes('open youtube')){reply('YouTube khol raha hoon.');openUrl('https://m.youtube.com');return;}
+ if(s.includes('google kholo')||s==='google'||s.includes('open google')){reply('Google khol raha hoon.');openUrl('https://www.google.com');return;}
+ if(s.includes('calculator')||s.includes('hisab')){reply('Calculator khol raha hoon.');openUrl('https://www.google.com/search?q=calculator');return;}
+ if(s.includes('search')||s.includes('dhundo')||s.includes(' खोजो')||s.includes('google par')){
+   let term=q.replace(/google par|google pe|search karo|search kar|dhundo| खोजो/ig,'').trim();
+   if(!term)term=q;
+   reply(term+' ke search results khol raha hoon.');openUrl('https://www.google.com/search?q='+encodeURIComponent(term));return;
+ }
+ if(s.includes('wikipedia')){const term=q.replace(/wikipedia par|wikipedia pe|search karo|search kar/ig,'').trim();reply('Wikipedia search khol raha hoon.');openUrl('https://en.wikipedia.org/w/index.php?search='+encodeURIComponent(term));return;}
+ if(s.includes('hello')||s.includes('hi jarvis')||s.includes('namaste')){reply('Hello! Main online hoon. Kya command hai?');return;}
+ if(s.includes('who are you')||s.includes('tum kaun')){reply('Main JARVIS 2.0 hoon, tumhara browser-based voice assistant.');return;}
+ reply('Ye command abhi mere basic mode mein available nahi hai. Main time, date, websites aur web search kar sakta hoon. Open-ended AI answers ke liye secure AI connection next step mein add karenge.');
+}
+document.getElementById('send').addEventListener('click',()=>handle(input.value));
+input.addEventListener('keydown',e=>{if(e.key==='Enter')handle(input.value);});
+document.getElementById('stop').addEventListener('click',()=>{window.speechSynthesis.cancel();if(recognition)recognition.stop();statusEl.textContent='SYSTEM ONLINE · READY';});
+const SpeechRecognition=window.SpeechRecognition||window.webkitSpeechRecognition;
+if(SpeechRecognition){recognition=new SpeechRecognition();recognition.lang='hi-IN';recognition.continuous=false;recognition.interimResults=false;
+ recognition.onstart=()=>statusEl.textContent='LISTENING...';
+ recognition.onresult=e=>handle(e.results[0][0].transcript);
+ recognition.onerror=e=>{statusEl.textContent='MIC ERROR: '+e.error;};
+ recognition.onend=()=>{if(statusEl.textContent==='LISTENING...')statusEl.textContent='SYSTEM ONLINE · READY';};
+ document.getElementById('mic').addEventListener('click',()=>{try{recognition.start();}catch(e){statusEl.textContent='MIC ALREADY ACTIVE';}});
+}else{document.getElementById('mic').disabled=true;statusEl.textContent='VOICE RECOGNITION NOT SUPPORTED IN THIS BROWSER';}
+</script>
+</body>
+</html>
